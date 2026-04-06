@@ -30,30 +30,33 @@ Isso vai criar o seu subdominio e apontar para a sua VPS.
 
 > Use permissão de root.
 
-1. Acesse a maquina via ssh ou outro cliente de acesso remoto;
-2. suba o script `install_odk.sh`;
-3. dê permissão de execução  com o comando `chmod +x install_odk.sh`.
-4. suba o script `create_useradmin_odk.sh`;
-5. dê permissão de execução  com o comando `chmod +x create_useradmin_odk.sh`.
+1. Acesse a máquina via ssh ou outro cliente de acesso remoto;
+2. suba o script `odk_install.sh`;
+3. dê permissão de execução com o comando `chmod +x odk_install.sh`.
+4. suba o script `odk_create_user.sh`;
+5. dê permissão de execução com o comando `chmod +x odk_create_user.sh`.
 
 
 ## Passo 2 - Instalação
-a) Execute o script com `sudo ./install_odk.sh` ou `sudo bash install_odk.sh` e siga as intruções. ([Detalhes](SCRIPT.md))
+a) Execute o script com `sudo ./odk_install.sh` ou `sudo bash odk_install.sh` e siga as instruções. ([Detalhes](SCRIPT.md))
 
-b) acesse `/opt/central/` e execute `docker compose up --build -d`
+b) Acesse `/opt/central/` e execute `docker compose up --build -d`
 
-c) (Opcional) acompanhe os logs: `docker compose logs -f`
+c) (Opcional) Acompanhe os logs: `docker compose logs -f`
+
+> **Dica:** O script aceita variáveis de ambiente para personalizar o comportamento (ex.: `NO_EDIT=1` para não abrir editor, `DISABLE_UFW=0` para manter o firewall). Veja a lista completa no [README.md](README.md#variáveis-de-ambiente-opcionais).
 
 
 ## Passo 3 - Criação do usuário Admin
 
-> Verifique se o script `odk_create_user.sh` foi copiado para `/opt/central/`.
+> O script `odk_install.sh` já copia automaticamente o `odk_create_user.sh` para `/opt/central/`. Caso não tenha sido copiado, faça manualmente:
+> `cp ~/odk/odk_create_user.sh /opt/central/`
 
-a) Caso necessário, copie o script `odk_create_user.sh` para `/opt/central/`. Use o comando `cp ~/odk/odk_create_user.sh /opt/central/`
+a) Acesse o diretório: `cd /opt/central`
 
-b) Execute o script com `./odk_create_user.sh` ou `sudo bash odk_create_user.sh` e siga as intruções.
+b) Execute o script com `sudo bash odk_create_user.sh` e siga as instruções.
 
-c) Acesse o endereço criado para seu ODK Central `odk.envelhecer.online` e faça login com o usuário e senhas criados.
+c) Acesse o endereço criado para seu ODK Central (ex.: `odk.envelhecer.online`) e faça login com o usuário e senha criados.
 
 
 Bom trabalho e boa jornada!!!

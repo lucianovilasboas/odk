@@ -37,9 +37,9 @@ sudo bash odk_create_user.sh
 |---|---|
 | `odk_install.sh` | **Script recomendado** — prepara o servidor, instala Docker e clona o ODK Central |
 | `odk_create_user.sh` | Cria usuário administrador no ODK Central |
-| `install_odk.sh` | Versão anterior/simplificada do instalador |
-| `install_odk_novo.sh` | Versão intermediária usada como base para `odk_install.sh` |
-| `dry-run.sh` | Script de teste (dry-run) |
+| `dry-run.sh` | Simula todas as etapas do `odk_install.sh` sem executar nenhum comando |
+| `install_odk.sh` | Versão anterior/simplificada do instalador (referência) |
+| `install_odk_novo.sh` | Versão intermediária usada como base para `odk_install.sh` (referência) |
 
 
 ## Documentação

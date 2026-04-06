@@ -1,79 +1,76 @@
-# Guia detalhado do fluxo de instalação (baseado em `install_odk.sh`)
+# Guia detalhado do fluxo de instalação (baseado em `odk_install.sh`)
 
-Este documento descreve, passo a passo, o que o script `install_odk.sh` faz para instalar e preparar o ODK Central em um servidor Ubuntu.
+Este documento descreve, passo a passo, o que o script **`odk_install.sh`** faz para instalar e preparar o ODK Central em um servidor Ubuntu/Debian.
 
-## 1. Validação de execução como root
+> O script antigo `install_odk.sh` ainda existe no repositório como referência, mas o recomendado é usar `odk_install.sh`.
 
-O script começa com:
+## Visão geral
 
-- `set -Eeuo pipefail`: ativa modo mais seguro para shell script.
-	- `-e`: interrompe ao ocorrer erro.
-	- `-u`: falha ao usar variável não definida.
-	- `-o pipefail`: falha se qualquer comando de um pipe falhar.
-	- `-E`: preserva comportamento de traps em funções/subshells.
-- Verifica se o usuário atual é root (`EUID != 0`).
+O script é dividido em **14 etapas** executadas sequencialmente. Todas as ações são registradas em tela e no arquivo de log (padrão: `/var/log/odk_install.log`). Um trap de erro captura falhas com o número da linha, facilitando diagnóstico.
 
-Se não for root, o script exibe mensagem e encerra imediatamente.
+## Variáveis de ambiente
 
-## 2. Remoção de pacotes potencialmente conflitantes de container
+Antes de executar, você pode personalizar o comportamento exportando variáveis:
 
-Antes de instalar Docker oficial, o script remove pacotes que podem conflitar:
+| Variável | Padrão | Descrição |
+|---|---|---|
+| `DISABLE_UFW` | `1` | `0` para manter o firewall ativo |
+| `ODK_DIR` | `/opt/central` | Caminho de instalação do Central |
+| `ODK_REPO` | `https://github.com/getodk/central` | URL do repositório |
+| `NO_EDIT` | `0` | `1` para não abrir editor automaticamente |
+| `OVERWRITE_ENV` | `0` | `1` para sobrescrever `.env` existente |
+| `LOG_FILE` | `/var/log/odk_install.log` | Caminho do arquivo de log |
+| `EDITOR` | `nano` | Editor usado para abrir o `.env` |
 
-- `docker.io`
-- `docker-doc`
-- `docker-compose`
-- `docker-compose-v2`
-- `podman-docker`
-- `containerd`
-- `runc`
+## Etapa 1 — Validação de root e dependências
 
-Objetivo: evitar mistura de versões/pacotes de origens diferentes.
+- `set -Eeuo pipefail`: ativa modo seguro do bash.
+  - `-e`: interrompe ao ocorrer erro.
+  - `-u`: falha ao usar variável não definida.
+  - `-o pipefail`: falha se qualquer comando de um pipe falhar.
+  - `-E`: preserva comportamento de traps em funções/subshells.
+- Verifica se o usuário atual é root (`EUID != 0`). Se não for, encerra imediatamente.
+- Verifica se `apt-get` e `dpkg` estão disponíveis (garante que é Ubuntu/Debian).
+- Um **trap de erro** (`on_error`) captura qualquer falha e exibe a linha onde ocorreu.
 
-## 3. Atualização de índices e instalação de pré-requisitos
+## Etapa 2 — Remoção de pacotes conflitantes
+
+Remove pacotes que podem conflitar com o Docker oficial:
+
+- `docker.io`, `docker-doc`, `docker-compose`, `docker-compose-v2`
+- `podman-docker`, `containerd`, `runc`
+
+Cada remoção usa `|| true` para não falhar se o pacote não estiver instalado.
+
+## Etapa 3 — Atualização de índices e pré-requisitos
 
 Executa:
 
+- `export DEBIAN_FRONTEND=noninteractive` (evita prompts interativos)
 - `apt-get update`
 - `apt-get install -y ca-certificates curl gnupg lsb-release git nano`
 
-Função de cada pacote principal:
+Função dos pacotes:
 
 - `ca-certificates`: validação TLS.
-- `curl`: download de arquivos (chave GPG).
-- `gnupg`: manipulação/verificação de chaves.
+- `curl`: download da chave GPG.
+- `gnupg`: verificação de chaves.
 - `lsb-release`: informações da distribuição.
 - `git`: clonagem do repositório ODK Central.
-- `nano`: edição do arquivo `.env`.
+- `nano`: editor padrão para `.env`.
 
-## 4. Configuração da chave GPG oficial do Docker
-
-Passos executados:
+## Etapa 4 — Chave GPG e repositório oficial do Docker
 
 1. Cria diretório de keyrings: `/etc/apt/keyrings`.
-2. Baixa chave GPG da Docker:
-	 - URL: `https://download.docker.com/linux/ubuntu/gpg`
-	 - Salva em: `/etc/apt/keyrings/docker.asc`
-3. Ajusta permissão de leitura global na chave.
+2. Baixa chave GPG: `https://download.docker.com/linux/ubuntu/gpg` → `/etc/apt/keyrings/docker.asc`.
+3. Ajusta permissão de leitura.
+4. Detecta **arquitetura** (`dpkg --print-architecture`) e **codinome** da distro (`/etc/os-release`).
+5. Grava `/etc/apt/sources.list.d/docker.list` com a linha do repositório.
+6. Executa `apt-get update` para indexar o novo repositório.
 
-Isso garante que o apt confie no repositório oficial da Docker.
+## Etapa 5 — Instalação do Docker Engine e plugins
 
-## 5. Adição do repositório oficial do Docker
-
-O script grava o arquivo:
-
-- `/etc/apt/sources.list.d/docker.list`
-
-Com uma entrada que usa:
-
-- Arquitetura retornada por `dpkg --print-architecture`
-- Distribuição detectada via `/etc/os-release`
-- Assinatura pela chave em `/etc/apt/keyrings/docker.asc`
-
-Depois disso, executa `apt-get update` novamente para carregar os pacotes desse novo repositório.
-
-## 6. Instalação do Docker Engine e plugins
-
-Instala os componentes:
+Instala:
 
 - `docker-ce`
 - `docker-ce-cli`
@@ -81,94 +78,110 @@ Instala os componentes:
 - `docker-buildx-plugin`
 - `docker-compose-plugin`
 
-Em seguida valida a instalação com:
+## Etapa 6 — Verificação das versões
+
+Valida a instalação com:
 
 - `docker --version`
 - `docker compose version`
 
-## 7. Desativação do firewall UFW
+## Etapa 7 — Desativação do firewall UFW (opcional)
 
-O script executa:
+- Se `DISABLE_UFW=1` (padrão): desativa UFW (apenas se `ufw` estiver instalado).
+- Se `DISABLE_UFW=0`: mantém firewall intacto.
 
-- `ufw disable`
+> **Nota de segurança:** em produção, o ideal é manter o firewall ativo e liberar apenas portas necessárias (80, 443, SSH).
 
-Efeito: remove bloqueio padrão de portas no host via UFW.
+## Etapa 8 — Clone ou atualização do ODK Central
 
-Observação importante:
+O script é **idempotente**:
 
-- Em produção, o ideal é manter firewall ativo e liberar apenas portas necessárias (por exemplo, 80/443 e portas administrativas específicas).
+- Se `/opt/central/.git` já existe → faz `git fetch --all --prune` + `git pull --ff-only`.
+- Se `/opt/central` existe mas não é repositório git → aborta com erro.
+- Caso contrário → faz `git clone` do repositório configurado.
 
-## 8. Clone do ODK Central em `/opt`
+Permissões: `umask 022` garante arquivos legíveis por todos.
 
-Passos:
+## Etapa 9 — Atualização de submódulos
 
-1. `cd /opt`
-2. `umask 022` (arquivos padrão legíveis por outros usuários)
-3. `git clone https://github.com/getodk/central`
-4. `cd central`
-5. `git submodule update -i`
+Executa:
 
-Resultado esperado: código do ODK Central disponível em `/opt/central`.
+```bash
+git -C /opt/central submodule update --init
+```
 
-## 9. Preparação para PostgreSQL 14
+Inicializa e atualiza todos os submódulos do projeto.
 
-O script cria o arquivo:
+## Etapa 10 — Flag de upgrade do PostgreSQL
 
-- `./files/allow-postgres14-upgrade`
+Cria o diretório `files/` (se não existir) e o arquivo marcador:
 
-Esse marcador é usado pelo projeto para permitir fluxo de upgrade relacionado ao PostgreSQL 14.
+- `${ODK_DIR}/files/allow-postgres14-upgrade`
 
-## 10. Criação do arquivo de ambiente
+Esse flag é usado pelo ODK Central para permitir migrações de versão do PostgreSQL.
 
-O script copia template para arquivo real:
+## Etapa 11 — Criação do arquivo `.env`
 
-- Origem: `.env.template`
-- Destino: `.env`
+- Verifica se `.env.template` existe (falha se não existir).
+- Se `.env` já existe e `OVERWRITE_ENV=0` (padrão): **não sobrescreve**.
+- Se `.env` já existe e `OVERWRITE_ENV=1`: sobrescreve com aviso.
+- Caso contrário: copia `.env.template` → `.env`.
 
-Depois orienta o operador a editar variáveis essenciais:
+## Etapa 12 — Cópia do script auxiliar `odk_create_user.sh`
 
-- `DOMAIN`
-- `SYSADMIN_EMAIL`
+- Procura `odk_create_user.sh` no diretório de onde o instalador foi chamado (`SCRIPT_DIR`).
+- Se encontrado: copia para `${ODK_DIR}/odk_create_user.sh` e dá permissão de execução.
+- Se não encontrado: exibe aviso e continua.
 
-E abre o editor interativo:
+## Etapa 13 — Edição do `.env`
 
-- `nano .env`
+Informa que é necessário configurar `DOMAIN` e `SYSADMIN_EMAIL`.
 
-## 11. Etapa manual final para subir os serviços
+- Se `NO_EDIT=0` (padrão): abre o editor (`$EDITOR` → `nano` → `vi`).
+- Se `NO_EDIT=1`: apenas orienta o operador a editar manualmente.
 
-Após terminar a edição do `.env`, o script orienta executar:
+## Etapa 14 — Próximos passos
+
+Exibe os comandos que devem ser executados manualmente após o script:
 
 ```bash
 cd /opt/central
 docker compose up --build -d
+docker compose logs -f     # opcional
 ```
 
-Isso faz build das imagens necessárias e sobe os containers em segundo plano.
+## Resumo: automático vs. manual
 
-## 12. Resumo rápido do que é automático x manual
-
-Automático no script:
+**Automático:**
 
 - Preparação do sistema e Docker.
-- Clone do ODK Central.
-- Inicialização de arquivos base (`.env` e marcador de upgrade).
+- Clone/atualização do ODK Central e submódulos.
+- Criação de `.env` e flag de upgrade.
+- Cópia do script de criação de usuário.
 
-Manual (obrigatório):
+**Manual (obrigatório):**
 
-- Preencher corretamente o arquivo `.env`.
+- Configurar `DOMAIN` e `SYSADMIN_EMAIL` no `.env`.
 - Executar `docker compose up --build -d`.
+- Criar o usuário admin com `odk_create_user.sh`.
 
-## 13. Comando único para executar o instalador
-
-Se o arquivo já tiver permissão de execução:
+## Como executar
 
 ```bash
-sudo ./install_odk.sh
+# Com permissão de execução:
+sudo ./odk_install.sh
+
+# Ou diretamente:
+sudo bash odk_install.sh
+
+# Exemplo com variáveis personalizadas:
+sudo NO_EDIT=1 DISABLE_UFW=0 bash odk_install.sh
 ```
 
-Se ainda não tiver:
+## Simulação (dry-run)
+
+Para visualizar todas as etapas sem executar nenhum comando no sistema:
 
 ```bash
-chmod +x install_odk.sh
-sudo ./install_odk.sh
+bash dry-run.sh
 ```
