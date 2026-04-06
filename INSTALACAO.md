@@ -1,6 +1,6 @@
 # Instalação do ODK Central
 
-Tutorial de Instalação do ODK Central
+Tutorial de Instalação do ODK Central 
 
 Baseado em: 
 
@@ -9,7 +9,7 @@ Baseado em:
 - https://docs.getodk.org/central-install-digital-ocean/#central-install-digital-ocean
 
 
-Para este tutorial vamos supor uma VPS configurada com UBUNTU 24.04 na Hostinger (hostinger.com) e um dominio `envelhecer.online` com um subdominio `odk.envelhecer.online` que aponta para a VPS.
+Para este tutorial vamos supor uma VPS configurada com UBUNTU 24.04 LTS na Hostinger (hostinger.com) e um dominio `envelhecer.online` com um subdominio `odk.envelhecer.online` que aponta para a VPS.
 
 ## Passo 0 - Configurações DNS do dominio e subdominio 
 
