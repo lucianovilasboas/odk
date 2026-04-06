@@ -11,47 +11,54 @@ Baseado em:
 
 Para este tutorial vamos supor uma VPS configurada com UBUNTU 24.04 na Hostinger (hostinger.com) e um dominio `envelhecer.online` com um subdominio `odk.envelhecer.online` que aponta para a VPS.
 
-## Passo 0
-Configurações DNS do dominio e subdominio 
-1. Configure “DNS / Nameservers”
+## Passo 0 - Configurações DNS do dominio e subdominio 
+
+1. Configure "DNS / Nameservers"
 a) Registros de DNS (na imagem abaixo substitua IPv4 e IPv6 pelos respectivos IPs da sua VM)
 
 ![Exemplo de configuração DNS](dns_1.png)
 ![Exemplo de configuração DNS](dns_2.png)
-
 Isso vai linkar o seu dominio ao seu ODK Central inclusive habilitando o envio de email.
 
-b) Child nameservers
+b) (Opcional) Child nameservers
 
 ![Exemplo de configuração DNS](dns_3.png)
-
-
 Isso vai criar o seu subdominio e apontar para a sua VPS.
 
 
-## Passo 1 
-Configuração da VPS
-use permissão de root 
+## Passo 1 - Configuração da VPS
 
-1. acesse a maquina via ssh ou outro cliente de acesso remoto;
+> Use permissão de root.
+
+1. Acesse a maquina via ssh ou outro cliente de acesso remoto;
 2. suba o script `install_odk.sh`;
 3. dê permissão de execução  com o comando `chmod +x install_odk.sh`.
 4. suba o script `create_useradmin_odk.sh`;
 5. dê permissão de execução  com o comando `chmod +x create_useradmin_odk.sh`.
 
 
-## Passo 2
-Execute o script com `sudo ./install_odk.sh` ou `sudo sh install_odk.sh` e siga as intruções.
+## Passo 2 - Instalação
+a) Execute o script com `sudo ./install_odk.sh` ou `sudo bash install_odk.sh` e siga as intruções. ([Detalhes](SCRIPT.md))
 
-## Passo 3
-Execute o script com `./create_useradmin_odk` ou `sudo sh create_useradmin_odk` e siga as intruções.
+b) acesse `/opt/central/` e execute `docker compose up --build -d`
 
-
-Acesse o endereço criado para seu ODK Central `odk.envelhecer.online`
+c) (Opcional) acompanhe os logs: `docker compose logs -f`
 
 
+## Passo 3 - Criação do usuário Admin
+
+> Verifique se o script `odk_create_user.sh` foi copiado para `/opt/central/`.
+
+a) Caso necessário, copie o script `odk_create_user.sh` para `/opt/central/`. Use o comando `cp ~/odk/odk_create_user.sh /opt/central/`
+
+b) Execute o script com `./odk_create_user.sh` ou `sudo bash odk_create_user.sh` e siga as intruções.
+
+c) Acesse o endereço criado para seu ODK Central `odk.envelhecer.online` e faça login com o usuário e senhas criados.
 
 
+Bom trabalho e boa jornada!!!
+
+<hr> 
 
 Configurações complementares no link: https://docs.getodk.org/central-install
 
