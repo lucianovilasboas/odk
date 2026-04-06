@@ -12,6 +12,14 @@ Scripts para preparar e instalar o [ODK Central](https://docs.getodk.org/central
 
 Antes de instalar, configure os registros DNS do seu domínio/subdomínio para apontar para a VPS. Detalhes e exemplos com imagens em [INSTALACAO.md](INSTALACAO.md#passo-0---configurações-dns-do-dominio-e-subdominio).
 
+## Instalação em 1 linha (web installer)
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/lucianovilasboas/odk/main/install.sh | bash
+```
+
+Esse comando baixa o `install.sh`, que por sua vez baixa e executa o `odk_install.sh`.
+
 ## Instalação rápida
 
 ```bash
