@@ -39,7 +39,6 @@ sudo bash odk_create_user.sh
 | `odk_create_user.sh` | Cria usuário administrador no ODK Central |
 | `dry-run.sh` | Simula todas as etapas do `odk_install.sh` sem executar nenhum comando |
 | `install_odk.sh` | Versão anterior/simplificada do instalador (referência) |
-| `install_odk_novo.sh` | Versão intermediária usada como base para `odk_install.sh` (referência) |
 
 
 ## Documentação
