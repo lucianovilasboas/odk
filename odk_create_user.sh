@@ -3,7 +3,7 @@
 
 # Verifica se está na pasta correta
 if [ ! -f docker-compose.yml ]; then
-  echo "❌ Este script deve ser executado dentro da pasta 'central' do ODK."
+  echo "❌ Este script deve ser executado em '/opt/central/' do ODK."
   exit 1
 fi
 
