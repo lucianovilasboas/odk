@@ -19,7 +19,7 @@
 #   9)  Atualização de submódulos do Central
 #   10) Criação do flag allow-postgres14-upgrade
 #   11) Cópia de .env.template para .env (sem sobrescrever por padrão)
-#   12) Cópia do script auxiliar create_useradmin_odk.sh para /opt/central
+#   12) Cópia do script auxiliar odk_create_user.sh para /opt/central
 #   13) Abertura do editor para configurar DOMAIN e SYSADMIN_EMAIL
 #   14) Orientação dos próximos passos (docker compose up)
 #
